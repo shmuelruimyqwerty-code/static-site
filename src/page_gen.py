@@ -10,7 +10,7 @@ def extract_title(markdown_line):
     else:
         raise Exception ("no header in md")
 
-def generate_page(from_path, template_path, dest_path):
+def generate_page(from_path, template_path, dest_path, basepath):
     print (f"Generating page from {from_path} to {dest_path} using template_path")
     with open(from_path,encoding="utf-8") as f:
         whole_md = str(f.read())
@@ -24,12 +24,14 @@ def generate_page(from_path, template_path, dest_path):
     title = extract_title(head)
     template = template.replace("{{ Title }}", title)
     template = template.replace("{{ Content }}", html_str)
+    template = template.replace('href="/', f'href="{basepath}')
+    template = template.replace('src="/', f'src="{basepath}')
     file_path = os.path.join(dest_path,"index.html")
     os.makedirs(dest_path, exist_ok=True)
     with open(file_path, "w") as file:
         file.write(template)
 
-def generate_pages_recursive(dir_path_content, template_path, dest_dir_path) -> None:
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path,basepath) -> None:
     if not os.path.exists(dest_dir_path):
         os.mkdir(dest_dir_path)
 
@@ -40,10 +42,10 @@ def generate_pages_recursive(dir_path_content, template_path, dest_dir_path) -> 
         dest_dir_path = os.path.join(dest_dir_path, filename)
         print(f" * {dir_path_content} -> {dest_dir_path}")
         if os.path.isfile(dir_path_content):
-            generate_page(dir_path_content, template_path, og_dest_dir_path)
+            generate_page(dir_path_content, template_path, og_dest_dir_path, basepath)
             dir_path_content = og_dir_path_content
             dest_dir_path = og_dest_dir_path
         else:
-            generate_pages_recursive(dir_path_content, template_path, dest_dir_path)
+            generate_pages_recursive(dir_path_content, template_path, dest_dir_path,basepath)
             dir_path_content = og_dir_path_content
             dest_dir_path = og_dest_dir_path
